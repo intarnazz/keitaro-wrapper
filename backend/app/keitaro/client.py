@@ -44,3 +44,16 @@ class KeitaroClient:
 
     def traffic_sources(self):
         return self.get("/traffic_sources")
+
+    # кампании и потоки
+    def create_campaign(self, payload: dict) -> dict:
+        return self.post("/campaigns", payload)
+
+    def update_campaign(self, campaign_id: int, payload: dict) -> dict:
+        return self.put(f"/campaigns/{campaign_id}", payload)
+
+    def delete_campaign(self, campaign_id: int):
+        return self.delete(f"/campaigns/{campaign_id}")
+
+    def create_stream(self, payload: dict) -> dict:
+        return self.post("/streams", payload)
