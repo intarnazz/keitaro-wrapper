@@ -1,0 +1,130 @@
+import { PagingInfo } from '@/api/web_services/rest-type'
+import request from './request/request'
+import type { PostBody, GetOptions } from './request/request'
+
+/**
+ * Универсальный REST-клиент для работы с API.
+ * Позволяет выполнять GET, POST, PATCH и DELETE запросы с базовым префиксом URL.
+ */
+export default class Rest {
+  /** Префикс URL для этого ресурса (например, '/products') */
+  #prefix: string
+  #request: typeof request
+
+  /**
+   * Конструктор REST-клиента
+   * @param prefix - Префикс URL для ресурса
+   */
+  constructor(prefix: string) {
+    this.#prefix = prefix
+    this.#request = request
+  }
+
+  /**
+   * Создает новый экземпляр Rest
+   * @param prefix - Префикс URL для нового экземпляра
+   * @returns Экземпляр класса Rest
+   *
+   * @example
+   * const productsApi = Rest.create('/products')
+   */
+  static create(prefix: string): Rest {
+    return new Rest(prefix)
+  }
+
+  /**
+   * Получение одного элемента по ID
+   * @param id - Идентификатор ресурса
+   * @param header - Дополнительные параметры запроса (limit, offset, search)
+   * @typeParam T - Тип объекта, ожидаемого в ответе
+   * @returns Промис с объектом типа T
+   *
+   * @example
+   * const product = await api.get<Product>(1)
+   */
+  public get(
+    id: string | number,
+    header: GetOptions = {},
+  ): Promise<
+    Partial<{
+      success: boolean
+      message: string
+      data: Record<string, unknown>
+      pagingInfo: PagingInfo
+    }>
+  > {
+    return this.#request.get(`${this.#prefix}/${id}`, header)
+  }
+
+  /**
+   * Получение всех элементов ресурса
+   * @param data - Параметры запроса (limit, offset, search)
+   * @typeParam T - Тип объекта или массива объектов, ожидаемого в ответе
+   * @returns Промис с объектом типа T
+   *
+   * @example
+   * const products = await api.all<Product[]>({ limit: 10 })
+   */
+  all(data: GetOptions = {}): Promise<
+    Partial<{
+      success: boolean
+      message: string
+      data: Record<string, unknown>[]
+      pagingInfo: PagingInfo
+      meta: Record<string, unknown>
+    }>
+  > {
+    return this.#request.get(this.#prefix, data)
+  }
+
+  /**
+   * Создание нового ресурса
+   * @param data - Объект с данными для создания ресурса
+   * @typeParam T - Тип объекта, ожидаемого в ответе
+   * @returns Промис с объектом типа T
+   *
+   * @example
+   * const newProduct = await api.add<Product>({ name: 'New Product', price: 100 })
+   */
+  public add<T = unknown>(data: PostBody): Promise<T> {
+    return this.#request.post<T>(this.#prefix, data)
+  }
+
+  /**
+   * Внутренняя приватная функция для отправки PATCH/DELETE через POST с методом _method
+   * @param url - URL запроса
+   * @param method - Метод запроса ('PATCH' или 'DELETE')
+   * @param data - Данные для отправки, обязательно поле id
+   * @typeParam T - Тип объекта, ожидаемого в ответе
+   * @returns Промис с объектом типа T
+   */
+  private push<T = unknown>(url: string, method: 'PATCH' | 'DELETE', data: PostBody): Promise<T> {
+    return this.#request.post<T>(`${url}/${data.id}`, { _method: method, ...data })
+  }
+
+  /**
+   * Обновление существующего ресурса
+   * @param data - Данные для обновления, обязательное поле id
+   * @typeParam T - Тип объекта, ожидаемого в ответе
+   * @returns Промис с обновленным объектом типа T
+   *
+   * @example
+   * await api.patch<Product>({ id: 1, price: 150 })
+   */
+  public patch<T = unknown>(data: PostBody & { id: string | number }): Promise<T> {
+    return this.push<T>(this.#prefix, 'PATCH', data)
+  }
+
+  /**
+   * Удаление ресурса
+   * @param data - Данные для удаления, обязательное поле id
+   * @typeParam T - Тип объекта, ожидаемого в ответе (например, подтверждение удаления)
+   * @returns Промис с объектом типа T
+   *
+   * @example
+   * await api.delete<{ success: boolean }>({ id: 1 })
+   */
+  public delete<T = unknown>(data: PostBody & { id: string | number }): Promise<T> {
+    return this.push<T>(this.#prefix, 'DELETE', data)
+  }
+}
