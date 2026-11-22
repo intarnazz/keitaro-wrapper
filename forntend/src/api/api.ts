@@ -1,39 +1,20 @@
-// // api
-// import type, { DefaultTypeInterface } from './local_domains/catalog/type/type'
-// import Rest from './web_services/rest'
-// import image from './web_services/image'
-// import user from './local_domains/user/user'
-// import filter from './local_domains/query'
-// import product from './local_domains/catalog/product/index'
-// import cart from './local_domains/cart/cart'
-// import { shallowRef } from 'vue'
-// import Product from '@/api/local_domains/catalog/product/product.model'
-// import { PagingInfo } from '@/api/web_services/rest-type'
+/**
+ * Глобальный модуль API фронтенда.
+ *
+ * Единственная точка входа к данным: компоненты импортируют отсюда модели и сервисы,
+ * а не ходят в сеть сами. Каждая модель описывает себя классом (тип берётся из него),
+ * `DefaultX` возвращает её значения по умолчанию.
+ */
+import campaigns from './domains/campaign/campaign.service'
+import directory from './domains/directory/directory.model'
 
-// /**
-//  * Глобальный модуль для взаимодействия с API.
-//  *
-//  * Модуль выступает посредником между методами API и компонентами бизнес-логики приложения.
-//  * Здесь создаются экземпляры классов для работы,
-//  * которые могут использоваться в любом компоненте приложения.
-//  */
-
-// // export const product = new Rest('product')
-// export const contact = new Rest('contact')
-// export const rest_type = new Rest('type')
-// export const tag = new Rest('tag')
-// export const brand = new Rest('brand')
-
-// export const homePageEssence = shallowRef<
-//   Record<
-//     string,
-//     {
-//       products?: Product[]
-//       pagingInfo?: PagingInfo
-//       type?: DefaultTypeInterface
-//       [key: string]: unknown
-//     }
-//   >
-// >({})
-
-// export { user, image, filter, product, type, cart }
+export { campaigns, directory }
+export { Campaign } from './domains/campaign/campaign.model'
+export { CampaignForm } from './domains/campaign/campaign.form'
+export { CreatedCampaign } from './domains/campaign/created-campaign.model'
+export { Stream } from './domains/stream/stream.model'
+export { StreamOffer } from './domains/stream/stream-offer.model'
+export { Offer } from './domains/offer/offer.model'
+export { OfferSearch } from './domains/offer/offer.search'
+export { DirectoryItem } from './domains/directory/directory.model'
+export { ApiError } from './web_services/api-error'

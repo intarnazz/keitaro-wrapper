@@ -55,3 +55,23 @@ TODO:
 - Push: `PUT /streams/{id}` с активными офферами, затем `base_* = текущее`. Запретить push без активных офферов.
 - Cancel: `base_status IS NULL` -> удалить строку, иначе откат к `base_*`. Pin не откатывается.
 - `distribute()`: чистая функция. Закреплённые не трогаем, остаток делим поровну целыми (первым достаётся +1). Сумма закреплённых > 100 -> ошибка.
+
+---
+
+## Обновление: ТЗ закрыто целиком (редактор + фронтенд)
+
+Контекст: Keitaro был недоступен (403 nginx), поэтому всё проверено на фейке `app/keitaro/fake.py` (KEITARO_FAKE=true). Пользователь сдаёт тестовое, проект лежит в `keitaro-wrapper/` (папка фронтенда называется `forntend`, не переименовывать без просьбы).
+
+Бэкенд (готово, 29 тестов):
+- `models.py` Stream, StreamOffer (желаемое состояние + снимок base_*). `services/distribute.py`, `services/editor.py`, `routers/editor.py`, `services/offers.py` (кэш списка офферов 60 с).
+- Alembic: `alembic/versions/0001_...`. `requirements.txt` перезаписан в UTF-8 (у пользователя был UTF-16 из PowerShell), добавлен python-multipart.
+- Решения: удаление оффера снимает pin; draft-added оффер при remove забывается; Fetch сохраняет черновик и перебалансирует сумму, если состав изменился; push без активных офферов или при сумме != 100 запрещён; потоки без офферов не редактируются.
+- Ошибки Keitaro в формате полей превращаются в `Keitaro: name: Name has already been used`.
+
+Фронтенд (`forntend/`, vue-tsc и vite build проходят):
+- Правила пользователя для слоя `src/api`: класс = источник типа (без types.ts), билдер `DefaultX`, всё через геттеры/сеттеры, закрытый `init` (ленивые геттеры возвращают null и запускают загрузку через `Loader`), действия через `Task`. Подробно в `forntend/README.md`.
+- Стили: Tailwind 4 + scoped sass; глобальный sass пользователя перебивает слои Tailwind (input/button/select, `.border`).
+- Проверено скриптом-смоуком на живом бэкенде: ленивые getters, add/cancel/pin/remove/push/restore, ошибки, форма.
+- Браузера в песочнице нет: визуально UI не проверялся.
+
+Не проверено на реальном Keitaro: названия фильтра/действия (country, http), PUT /streams/{id} только с offers, формат offers в GET потока.

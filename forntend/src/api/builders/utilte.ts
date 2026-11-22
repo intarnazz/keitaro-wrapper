@@ -144,3 +144,16 @@ export async function copyToClipboard(text: string, event: MouseEvent): Promise<
 
   return true
 }
+
+/**
+ * «Сырые» данные от API: те же ключи, что у модели, но значения заранее неизвестны.
+ * Класс сам приводит их к нужным типам в конструкторе (toNum, toStr, ...).
+ */
+export type Raw<T> = { [K in keyof T]?: unknown }
+
+export const toBool = (v: unknown, def: boolean = false): boolean => (v == null ? def : Boolean(v))
+
+export const asRecord = (v: unknown): Record<string, unknown> =>
+  v !== null && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
+
+export const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])

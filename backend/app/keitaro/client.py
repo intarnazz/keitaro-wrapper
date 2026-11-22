@@ -45,7 +45,26 @@ class KeitaroClient:
     def traffic_sources(self):
         return self.get("/traffic_sources")
 
-    # кампании и потоки
+    # чтение
+    def campaigns(self, limit: int = 100, offset: int = 0) -> list[dict]:
+        return self.get("/campaigns", limit=limit, offset=offset)
+
+    def campaign(self, campaign_id: int) -> dict:
+        return self.get(f"/campaigns/{campaign_id}")
+
+    def campaign_streams(self, campaign_id: int) -> list[dict]:
+        return self.get(f"/campaigns/{campaign_id}/streams")
+
+    def stream(self, stream_id: int) -> dict:
+        return self.get(f"/streams/{stream_id}")
+
+    def offers(self) -> list[dict]:
+        return self.get("/offers")
+
+    def offer(self, offer_id: int) -> dict:
+        return self.get(f"/offers/{offer_id}")
+
+    # запись
     def create_campaign(self, payload: dict) -> dict:
         return self.post("/campaigns", payload)
 
@@ -57,3 +76,6 @@ class KeitaroClient:
 
     def create_stream(self, payload: dict) -> dict:
         return self.post("/streams", payload)
+
+    def update_stream(self, stream_id: int, payload: dict) -> dict:
+        return self.put(f"/streams/{stream_id}", payload)

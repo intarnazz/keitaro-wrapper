@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import '@/assets/sass/style.sass'
 import 'nprogress/nprogress.css'
 import '@/assets/css/root.css'
 import '@/assets/css/loader.css'

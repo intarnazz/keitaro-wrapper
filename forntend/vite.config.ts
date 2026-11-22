@@ -13,6 +13,12 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    // Запросы /api идут на FastAPI, поэтому CORS настраивать не нужно
+    proxy: {
+      '/api': { target: 'http://localhost:8000', changeOrigin: true },
+    },
+  },
   css: {
     preprocessorOptions: {
       sass: {

@@ -1,5 +1,5 @@
 import re
-from typing import Generic, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -55,3 +55,54 @@ class CampaignCreated(BaseModel):
     group_id: int
     traffic_source_id: int
     streams: list[int]
+
+
+# ---------- редактор ----------
+
+class OfferView(BaseModel):
+    offer_id: int
+    name: str
+    status: Literal["active", "removed"]
+    share: int
+    pinned: bool
+    is_new: bool  # добавлен в черновике, в Keitaro ещё нет
+    changed: bool  # отличается от Keitaro
+
+
+class StreamView(BaseModel):
+    id: int
+    keitaro_stream_id: int
+    campaign_id: int
+    name: str
+    position: int
+    is_editable: bool  # у потока есть офферы
+    dirty: bool  # есть неопубликованные изменения
+    total_share: int  # сумма долей активных офферов
+    offers: list[OfferView]
+
+
+class CampaignInfo(BaseModel):
+    id: int
+    name: str
+    alias: str = ""
+    state: str = ""
+
+    @classmethod
+    def from_keitaro(cls, raw: dict[str, Any]) -> "CampaignInfo":
+        return cls(id=raw["id"], name=raw.get("name") or "", alias=raw.get("alias") or "",
+                   state=raw.get("state") or "")
+
+
+class OfferInfo(BaseModel):
+    id: int
+    name: str
+    state: str = ""
+
+
+class AddOfferBody(BaseModel):
+    offer_id: int = Field(gt=0)
+
+
+class PinBody(BaseModel):
+    pinned: bool
+    share: int | None = Field(default=None, ge=1, le=100, description="Долю можно задать при закреплении")

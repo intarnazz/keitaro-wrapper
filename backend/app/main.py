@@ -4,20 +4,23 @@ from typing import Any
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
+from app.deps import get_keitaro
+from app.errors import EditorError
 from app.keitaro.client import KeitaroClient, KeitaroError
+from app.routers import editor as editor_router
 from app.schemas import ApiResponse, CampaignCreate, CampaignCreated
 from app.services.campaigns import DefaultNotFound, create_campaign_with_streams
 
 app = FastAPI(title="Keitaro wrapper")
-
-
-def get_keitaro() -> KeitaroClient:
-    return KeitaroClient(settings.keitaro_url, settings.keitaro_api_key)
+app.add_middleware(
+    CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["*"], allow_headers=["*"]
+)
 
 
 # ---------- единый формат ответов: {"success", "message", "data"} ----------
@@ -38,6 +41,14 @@ def short_text(text: str, limit: int = 200) -> str:
                 if isinstance(parsed.get(key), str):
                     text = parsed[key]
                     break
+            else:  # формат Keitaro для ошибок полей: {"name": ["Name has already been used"]}
+                fields = [
+                    f"{field}: {'; '.join(map(str, msgs))}"
+                    for field, msgs in parsed.items()
+                    if isinstance(msgs, list)
+                ]
+                if fields:
+                    text = "; ".join(fields)
     except ValueError:
         pass
     text = " ".join(text.split())
@@ -95,6 +106,11 @@ def validation_error_handler(request: Request, exc: RequestValidationError):
     return fail(422, short_text("Validation error: " + "; ".join(parts)), data)
 
 
+@app.exception_handler(EditorError)
+def editor_error_handler(_: Request, exc: EditorError):
+    return fail(exc.status, exc.message)
+
+
 @app.exception_handler(DefaultNotFound)
 def default_not_found_handler(_: Request, exc: DefaultNotFound):
     return fail(400, short_text(str(exc)))
@@ -149,6 +165,8 @@ async def campaign_payload(request: Request) -> CampaignCreate:
 
 
 # ---------- маршруты ----------
+
+app.include_router(editor_router.router)
 
 @app.get("/api/health", response_model=ApiResponse[dict[str, bool]])
 def health():
