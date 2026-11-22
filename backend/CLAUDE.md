@@ -75,3 +75,4 @@ TODO:
 - Браузера в песочнице нет: визуально UI не проверялся.
 
 Не проверено на реальном Keitaro: названия фильтра/действия (country, http), PUT /streams/{id} только с offers, формат offers в GET потока.
+- Форма создания: поле Offer это выпадающий список с поиском (`components/ui/OfferSelect.vue`, использует `OfferSearch`), `CampaignForm.offer_id` теперь `number | null`, а не строка.

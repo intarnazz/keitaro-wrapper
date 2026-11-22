@@ -1,5 +1,4 @@
 import { computed, reactive, shallowRef } from 'vue'
-import { toNum } from '@/api/builders/utilte'
 import request from '@/api/web_services/request'
 import Task from '@/api/web_services/task'
 import directory from '../directory/directory.model'
@@ -10,7 +9,7 @@ import { CreatedCampaign } from './created-campaign.model'
 export const DefaultCampaignForm = () => ({
   name: '',
   geo: '',
-  offer_id: '',
+  offer_id: null as number | null,
   domain_id: null as number | null,
   group_id: null as number | null,
   traffic_source_id: null as number | null,
@@ -21,7 +20,7 @@ export const DefaultCampaignForm = () => ({
 type Field = 'name' | 'geo' | 'offer_id'
 
 /**
- * Форма «New campaign»: name, geo, offer_id.
+ * Форма «New campaign»: name, geo, offer (выбирается из списка офферов Keitaro).
  *
  * Домен, группа и источник трафика по умолчанию берутся из справочников Keitaro
  * (первые активные), пользователь может выбрать другие.
@@ -35,7 +34,7 @@ export class CampaignForm {
     const errors: Partial<Record<Field, string>> = {}
     if (!this.data.name.trim()) errors.name = 'Enter a campaign name'
     if (!/^[A-Z]{2}$/.test(this.data.geo)) errors.geo = 'Two-letter country code, e.g. AU'
-    if (!/^[1-9]\d*$/.test(this.data.offer_id.trim())) errors.offer_id = 'Enter an offer ID'
+    if (this.data.offer_id === null) errors.offer_id = 'Select an offer'
     return errors
   })
   private _is_valid = computed<boolean>(() => Object.keys(this._client_errors.value).length === 0)
@@ -59,13 +58,13 @@ export class CampaignForm {
     this.data.geo = geo.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
   }
 
-  /** ID оффера как текст поля ввода */
-  public get offer_id(): string {
+  /** ID выбранного оффера */
+  public get offer_id(): number | null {
     return this.data.offer_id
   }
 
-  public set offer_id(offer_id: string) {
-    this.data.offer_id = offer_id.replace(/\D/g, '')
+  public set offer_id(offer_id: number | null) {
+    this.data.offer_id = offer_id
   }
 
   public get domain_id(): number | null {
@@ -128,7 +127,7 @@ export class CampaignForm {
     const body: Record<string, unknown> = {
       name: this.data.name.trim(),
       geo: this.data.geo,
-      offer_id: toNum(this.data.offer_id),
+      offer_id: this.data.offer_id,
     }
     if (this.domain_id !== null) body['domain_id'] = this.domain_id
     if (this.group_id !== null) body['group_id'] = this.group_id

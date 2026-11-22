@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { CampaignForm, directory } from '@/api/api'
 import UiAlert from '@/components/ui/UiAlert.vue'
+import OfferSelect from '@/components/ui/OfferSelect.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiInput from '@/components/ui/UiInput.vue'
 import UiSelect from '@/components/ui/UiSelect.vue'
@@ -30,13 +31,7 @@ const traffic_sources = computed(() => option_list(directory.traffic_sources))
         :maxlength="2"
         :error="form.field_error('geo')"
       />
-      <UiInput
-        v-model="form.offer_id"
-        label="Offer"
-        placeholder="Offer ID"
-        inputmode="numeric"
-        :error="form.field_error('offer_id')"
-      />
+      <OfferSelect v-model="form.offer_id" label="Offer" :error="form.field_error('offer_id')" />
     </div>
 
     <details class="advanced">

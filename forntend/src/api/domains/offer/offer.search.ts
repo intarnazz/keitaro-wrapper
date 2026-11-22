@@ -21,6 +21,11 @@ export class OfferSearch {
   private task = new Task()
   private timer: ReturnType<typeof setTimeout> | null = null
   private requested = false
+  private limit: number
+
+  constructor(limit: number = LIMIT) {
+    this.limit = limit
+  }
 
   /** Найденные офферы. Пока ничего не загружено, `null` (первое обращение загружает первые офферы). */
   public get results(): Offer[] | null {
@@ -53,7 +58,7 @@ export class OfferSearch {
   private async search(): Promise<void> {
     const query = this.data.query
     const found = await this.task.run(() =>
-      this.promise_controller.await((signal) => request.get('offers', { q: query, limit: LIMIT }, signal)),
+      this.promise_controller.await((signal) => request.get('offers', { q: query, limit: this.limit }, signal)),
     )
     if (found === null || found === false) return
     this._results.value = asArray(found).map((item) => new Offer(asRecord(item)))
